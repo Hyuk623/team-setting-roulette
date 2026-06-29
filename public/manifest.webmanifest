@@ -1,7 +1,7 @@
 {
-  "name": "팀플레이 룰렛",
-  "short_name": "팀룰렛",
-  "description": "어린이 체육수업용 오프라인 팀 편성 룰렛",
+  "name": "팀 세팅 룰렛",
+  "short_name": "팀세팅",
+  "description": "어린이 체육수업용 오프라인 팀 세팅 룰렛",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

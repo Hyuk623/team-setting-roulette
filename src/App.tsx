@@ -69,6 +69,14 @@ function App() {
     }));
   };
 
+  const updateTeamCount = (teamCount: number) => {
+    setSession((current) => ({
+      ...current,
+      settings: { ...current.settings, teamCount },
+      assignment: null,
+    }));
+  };
+
   const startClass = (settings: ClassSettings) => {
     updateSession({
       phase: 'select',
@@ -111,7 +119,7 @@ function App() {
       const groupNumber = current.spreadGroups.length + 1;
       const group: StoredSpreadGroup = {
         id: groupId,
-        label: `분산 ${groupNumber}`,
+        label: `묶음 ${groupNumber}`,
         memberIds: [],
       };
 
@@ -206,6 +214,8 @@ function App() {
       {session.phase === 'select' && (
         <SelectionScreen
           selectedIds={session.selectedIds}
+          teamCount={session.settings.teamCount}
+          onChangeTeamCount={updateTeamCount}
           onToggle={toggleCharacter}
           onBack={() => updateSession({ phase: 'setup' })}
           onNext={() => updateSession({ phase: 'groups' })}
@@ -220,6 +230,7 @@ function App() {
           onActivateGroup={setActiveGroupId}
           onAddGroup={addSpreadGroup}
           onBack={() => updateSession({ phase: 'select' })}
+          onChangeTeamCount={updateTeamCount}
           onRemoveGroup={removeSpreadGroup}
           onReveal={revealTeams}
           onToggleMember={toggleSpreadMember}
@@ -257,7 +268,7 @@ function Header({
   const phaseLabel: Record<AppPhase, string> = {
     setup: '수업 설정',
     select: '캐릭터 선택',
-    groups: '강사용 분산 그룹',
+    groups: '같은 팀 피하기',
     roulette: '룰렛 공개',
     results: '전체 팀 결과',
   };
@@ -266,7 +277,7 @@ function Header({
     <header className="topbar">
       <div>
         <p className="eyebrow">어린이 체육수업</p>
-        <h1>팀플레이 룰렛</h1>
+        <h1>팀 세팅 룰렛</h1>
       </div>
       <div className="status-strip" aria-label="현재 수업 상태">
         <span>{phaseLabel[phase]}</span>
@@ -290,49 +301,96 @@ function SetupScreen({
     <section className="setup-layout" aria-labelledby="setup-title">
       <div className="setup-copy">
         <p className="section-kicker">시작 및 수업 설정</p>
-        <h2 id="setup-title">오늘 수업 팀 수</h2>
+        <h2 id="setup-title">오늘 몇 팀으로 나눌까요?</h2>
         <p className="screen-note">
-          캐릭터 선택은 2명부터 시작할 수 있고 최대 40명까지 저장됩니다.
+          팀 수는 언제든 다시 바꿀 수 있어요. 아이들은 2명부터 40명까지 캐릭터를 골라 참여합니다.
         </p>
       </div>
       <div className="setup-panel">
-        <div className="team-count-grid" role="radiogroup" aria-label="팀 수">
-          {Array.from({ length: 7 }, (_, index) => index + 2).map((count) => (
-            <button
-              className={count === teamCount ? 'count-button is-active' : 'count-button'}
-              key={count}
-              onClick={() => setTeamCount(count)}
-              role="radio"
-              aria-checked={count === teamCount}
-              type="button"
-            >
-              <span className="team-shape" style={{ color: teamMarks[count - 2].color }}>
-                {teamMarks[count - 2].shape}
-              </span>
-              {count}팀
-            </button>
-          ))}
-        </div>
+        <TeamCountControl value={teamCount} onChange={setTeamCount} size="large" />
         <button
-          className="primary-action"
+          className="primary-action full-width"
           onClick={() => onStart({ teamCount })}
           type="button"
         >
-          새 수업 시작
+          캐릭터 고르러 가기
         </button>
       </div>
     </section>
   );
 }
 
+function TeamCountControl({
+  onChange,
+  size = 'compact',
+  value,
+}: {
+  onChange: (teamCount: number) => void;
+  size?: 'compact' | 'large';
+  value: number;
+}) {
+  const changeBy = (delta: number) => {
+    onChange(Math.min(8, Math.max(2, value + delta)));
+  };
+
+  return (
+    <div className={size === 'large' ? 'settings-control is-large' : 'settings-control'}>
+      <div className="stepper-row" aria-label="팀 수 조절">
+        <button
+          className="stepper-button"
+          disabled={value <= 2}
+          onClick={() => changeBy(-1)}
+          type="button"
+          aria-label="팀 수 줄이기"
+        >
+          −
+        </button>
+        <strong className="team-count-display">
+          <span>{value}</span>팀
+        </strong>
+        <button
+          className="stepper-button"
+          disabled={value >= 8}
+          onClick={() => changeBy(1)}
+          type="button"
+          aria-label="팀 수 늘리기"
+        >
+          +
+        </button>
+      </div>
+      <div className="team-count-grid" role="radiogroup" aria-label="팀 수 빠른 선택">
+        {Array.from({ length: 7 }, (_, index) => index + 2).map((count) => (
+          <button
+            className={count === value ? 'count-button is-active' : 'count-button'}
+            key={count}
+            onClick={() => onChange(count)}
+            role="radio"
+            aria-checked={count === value}
+            type="button"
+          >
+            <span className="team-shape" style={{ color: teamMarks[count - 2].color }}>
+              {teamMarks[count - 2].shape}
+            </span>
+            {count}팀
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SelectionScreen({
   selectedIds,
+  teamCount,
   onBack,
+  onChangeTeamCount,
   onNext,
   onToggle,
 }: {
   selectedIds: string[];
+  teamCount: number;
   onBack: () => void;
+  onChangeTeamCount: (teamCount: number) => void;
   onNext: () => void;
   onToggle: (characterId: string) => void;
 }) {
@@ -345,11 +403,14 @@ function SelectionScreen({
       <div className="screen-heading">
         <div>
           <p className="section-kicker">캐릭터 선택</p>
-          <h2 id="select-title">한 번 터치로 선택</h2>
+          <h2 id="select-title">내 캐릭터를 한 번 터치</h2>
         </div>
-        <strong className={canContinue ? 'count-pill is-ready' : 'count-pill'}>
-          {selectedIds.length}/{MAX_SELECTED}
-        </strong>
+        <div className="heading-tools">
+          <MiniSettings teamCount={teamCount} onChangeTeamCount={onChangeTeamCount} />
+          <strong className={canContinue ? 'count-pill is-ready' : 'count-pill'}>
+            {selectedIds.length}/{MAX_SELECTED}명
+          </strong>
+        </div>
       </div>
       <CharacterGrid
         mode="select"
@@ -359,7 +420,7 @@ function SelectionScreen({
       />
       <div className="action-row">
         <button className="secondary-action" onClick={onBack} type="button">
-          설정으로
+          처음 설정
         </button>
         <button
           className="primary-action"
@@ -367,10 +428,25 @@ function SelectionScreen({
           onClick={onNext}
           type="button"
         >
-          선택 완료
+          캐릭터 선택 완료
         </button>
       </div>
     </section>
+  );
+}
+
+function MiniSettings({
+  onChangeTeamCount,
+  teamCount,
+}: {
+  onChangeTeamCount: (teamCount: number) => void;
+  teamCount: number;
+}) {
+  return (
+    <div className="mini-settings" aria-label="팀 수 바로 바꾸기">
+      <span>팀 수</span>
+      <TeamCountControl value={teamCount} onChange={onChangeTeamCount} />
+    </div>
   );
 }
 
@@ -382,6 +458,7 @@ function SpreadGroupScreen({
   onActivateGroup,
   onAddGroup,
   onBack,
+  onChangeTeamCount,
   onRemoveGroup,
   onReveal,
   onToggleMember,
@@ -393,6 +470,7 @@ function SpreadGroupScreen({
   onActivateGroup: (groupId: string | null) => void;
   onAddGroup: () => void;
   onBack: () => void;
+  onChangeTeamCount: (teamCount: number) => void;
   onRemoveGroup: (groupId: string) => void;
   onReveal: () => void;
   onToggleMember: (characterId: string) => void;
@@ -409,9 +487,12 @@ function SpreadGroupScreen({
   return (
     <section className="teacher-layout" aria-labelledby="group-title">
       <aside className="teacher-panel">
-        <p className="section-kicker">강사용 화면</p>
-        <h2 id="group-title">분산 그룹</h2>
-        <p className="screen-note">{teamCount}팀 안에서 그룹별 인원을 균등 배치합니다.</p>
+        <p className="section-kicker">선생님 설정</p>
+        <h2 id="group-title">같은 팀 피하기</h2>
+        <p className="screen-note">
+          같이 붙으면 안 되는 캐릭터들을 한 묶음에 넣어 주세요. 룰렛이 가능한 서로 다른 팀으로 보내요.
+        </p>
+        <MiniSettings teamCount={teamCount} onChangeTeamCount={onChangeTeamCount} />
         <div className="group-list">
           {groups.map((group, index) => (
             <div
@@ -437,18 +518,21 @@ function SpreadGroupScreen({
           ))}
         </div>
         <button className="secondary-action full-width" onClick={onAddGroup} type="button">
-          그룹 추가
+          피할 묶음 추가
         </button>
       </aside>
       <div className="group-workspace">
         <div className="screen-heading">
           <div>
             <p className="section-kicker">
-              {activeGroup ? activeGroup.label : '그룹 없음'}
+              {activeGroup ? activeGroup.label : '묶음 없음'}
             </p>
-            <h2>{activeGroup ? '포함할 캐릭터' : '그룹을 추가하세요'}</h2>
+            <h2>{activeGroup ? '서로 떨어뜨릴 캐릭터' : '묶음을 먼저 추가하세요'}</h2>
           </div>
           <strong className="count-pill">{selectedCharacters.length}명</strong>
+        </div>
+        <div className="teacher-help-strip">
+          <span>예: 친한 친구들, 실력이 비슷한 친구들, 계속 같은 편이 되는 친구들</span>
         </div>
         <div className="character-grid group-grid">
           {selectedCharacters.map((character) => {
@@ -480,7 +564,7 @@ function SpreadGroupScreen({
         </div>
         <div className="action-row">
           <button className="secondary-action" onClick={onBack} type="button">
-            선택으로
+            캐릭터 다시 고르기
           </button>
           <button className="primary-action" onClick={onReveal} type="button">
             룰렛 시작
@@ -501,7 +585,7 @@ function RouletteScreen({
   onDone: () => void;
 }) {
   useEffect(() => {
-    const timeoutId = window.setTimeout(onDone, 4300);
+    const timeoutId = window.setTimeout(onDone, 7200);
     return () => window.clearTimeout(timeoutId);
   }, [onDone]);
 
@@ -515,11 +599,12 @@ function RouletteScreen({
       <div className="screen-heading compact">
         <div>
           <p className="section-kicker">룰렛 애니메이션</p>
-          <h2 id="roulette-title">팀 공개 중</h2>
+          <h2 id="roulette-title">내 캐릭터가 어디로 갈까요?</h2>
         </div>
         <strong className="count-pill">{assignment.teams.length}팀</strong>
       </div>
       <div className="roulette-stage">
+        <div className="stage-callout">들어갈까? 말까?</div>
         <div
           className="team-lanes"
           style={{
@@ -533,6 +618,12 @@ function RouletteScreen({
                 style={{ color: teamMarks[team.teamIndex].color }}
               >
                 {team.teamNumber}{teamMarks[team.teamIndex].shape}
+              </span>
+              <span
+                className="team-gate"
+                style={{ borderColor: teamMarks[team.teamIndex].color }}
+              >
+                {team.teamNumber}팀 입구
               </span>
             </div>
           ))}
@@ -551,10 +642,15 @@ function RouletteScreen({
               style={
                 {
                   '--accent': character.accent,
+                  '--delay': `${placement.delay}ms`,
                   '--spin-a-x': `${placement.spinA.x}%`,
                   '--spin-a-y': `${placement.spinA.y}%`,
                   '--spin-b-x': `${placement.spinB.x}%`,
                   '--spin-b-y': `${placement.spinB.y}%`,
+                  '--near-x': `${placement.near.x}%`,
+                  '--near-y': `${placement.near.y}%`,
+                  '--peek-x': `${placement.peek.x}%`,
+                  '--peek-y': `${placement.peek.y}%`,
                   '--to-x': `${placement.to.x}%`,
                   '--to-y': `${placement.to.y}%`,
                 } as CSSProperties
@@ -602,7 +698,7 @@ function ResultsScreen({
       </div>
       <div className="action-row">
         <button className="secondary-action" onClick={onEditGroups} type="button">
-          분산 그룹
+          같은 팀 피하기
         </button>
         <button className="primary-action" onClick={onReroulette} type="button">
           재룰렛
@@ -732,12 +828,24 @@ function createRoulettePlacements(assignment: TeamAssignment) {
           : rowIndex / (team.participantIds.length - 1);
       const teamRatio = (team.teamIndex + 0.5) / assignment.teamCount;
       const ordinal = team.teamIndex * 11 + rowIndex * 7;
+      const targetX = 5 + teamRatio * 90;
+      const targetY = 18 + rowRatio * 66;
+      const side = team.teamIndex % 2 === 0 ? -1 : 1;
 
       return {
         characterId,
+        delay: (rowIndex % 6) * 90 + team.teamIndex * 55,
         to: {
-          x: 5 + teamRatio * 90,
-          y: 15 + rowRatio * 70,
+          x: targetX,
+          y: targetY,
+        },
+        near: {
+          x: targetX + side * 5,
+          y: Math.max(14, targetY - 8),
+        },
+        peek: {
+          x: targetX - side * 4,
+          y: Math.min(86, targetY + 5),
         },
         spinA: {
           x: 50 + Math.cos(ordinal) * 32,

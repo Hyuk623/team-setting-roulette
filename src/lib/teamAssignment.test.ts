@@ -94,7 +94,7 @@ describe('assignTeams', () => {
         ],
         seed: 'overlap',
       }),
-    ).toThrow(/하나의 분산 그룹/);
+    ).toThrow(/하나의 피하기 묶음/);
   });
 
   it('keeps reroulette invariants while changing only the random assignment', () => {

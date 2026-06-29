@@ -136,7 +136,7 @@ function normalizeSpreadGroups(
 
       for (const memberId of memberIds) {
         if (assigned.has(memberId)) {
-          throw new Error('한 참가자는 하나의 분산 그룹에만 포함될 수 있습니다.');
+          throw new Error('한 캐릭터는 하나의 피하기 묶음에만 들어갈 수 있습니다.');
         }
         assigned.add(memberId);
       }
@@ -192,7 +192,7 @@ function planSpreadGroups(
       loadByTeam[teamIndex] += baseCount;
 
       if (loadByTeam[teamIndex] > targetSizes[teamIndex]) {
-        throw new Error('분산 그룹 기본 배치가 팀 정원을 초과했습니다.');
+        throw new Error('같은 팀 피하기 묶음 기본 배치가 팀 정원을 초과했습니다.');
       }
     }
 
@@ -205,7 +205,7 @@ function planSpreadGroups(
       extraTeams.length < extraCount ||
       extraTeams.some((teamIndex) => loadByTeam[teamIndex] >= targetSizes[teamIndex])
     ) {
-      throw new Error('분산 그룹 추가 인원을 배치할 수 없습니다.');
+      throw new Error('같은 팀 피하기 묶음 추가 인원을 배치할 수 없습니다.');
     }
 
     for (const teamIndex of extraTeams) {
