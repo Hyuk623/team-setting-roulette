@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { characters, type CharacterOption } from './data/characters';
 import {
   assignTeams,
@@ -13,7 +13,7 @@ import type {
   StoredSpreadGroup,
 } from './types';
 
-const MIN_SELECTED = 20;
+const MIN_SELECTED = 2;
 const MAX_SELECTED = 40;
 
 const teamMarks = [
@@ -292,7 +292,7 @@ function SetupScreen({
         <p className="section-kicker">시작 및 수업 설정</p>
         <h2 id="setup-title">오늘 수업 팀 수</h2>
         <p className="screen-note">
-          캐릭터 선택은 20명부터 시작할 수 있고 최대 40명까지 저장됩니다.
+          캐릭터 선택은 2명부터 시작할 수 있고 최대 40명까지 저장됩니다.
         </p>
       </div>
       <div className="setup-panel">

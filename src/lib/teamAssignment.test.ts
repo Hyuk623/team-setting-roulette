@@ -22,8 +22,8 @@ function groupCounts(
 }
 
 describe('assignTeams', () => {
-  it('keeps all team sizes within one person for 20 to 40 participants', () => {
-    for (let participantCount = 20; participantCount <= 40; participantCount += 1) {
+  it('keeps all team sizes within one person for 2 to 40 participants', () => {
+    for (let participantCount = 2; participantCount <= 40; participantCount += 1) {
       for (let teamCount = 2; teamCount <= 8; teamCount += 1) {
         const participantIds = ids(participantCount);
         const assignment = assignTeams({
