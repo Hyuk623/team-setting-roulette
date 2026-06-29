@@ -1,9 +1,9 @@
 {
-  "name": "team-play-roulette",
+  "name": "roulette",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "어린이 체육수업용 오프라인 팀 편성 룰렛 PWA",
+  "description": "오프라인 팀 세팅 룰렛 PWA",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",

@@ -293,10 +293,25 @@ button:disabled {
 }
 
 .character-grid {
+  align-content: start;
   display: grid;
   flex: 1;
   gap: 10px;
   grid-template-columns: repeat(8, minmax(82px, 1fr));
+}
+
+.character-pick {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.character-pick .character-tile {
+  min-height: 94px;
+}
+
+.character-pick.is-selected .character-tile {
+  min-height: 76px;
 }
 
 .character-tile {
@@ -368,6 +383,57 @@ button:disabled {
 .character-shape {
   color: var(--accent);
   font-size: 0.95rem;
+}
+
+.character-name {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, #dce3ee);
+  border-radius: 999px;
+  color: #172033;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 3px 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name-field {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, #dce3ee);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 34px;
+  padding: 4px 6px;
+}
+
+.name-field span {
+  color: #536176;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.name-field input {
+  background: #f7f9fc;
+  border: 1px solid #d8dee9;
+  border-radius: 6px;
+  color: #172033;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  min-width: 0;
+  outline: none;
+  padding: 5px 6px;
+}
+
+.name-field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .group-badge {
@@ -609,14 +675,14 @@ button:disabled {
   border-radius: 8px;
   box-shadow: 0 14px 24px rgba(23, 32, 51, 0.18);
   display: grid;
-  height: 58px;
+  height: 70px;
   left: 50%;
   opacity: 0;
   place-items: center;
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%) scale(0.85) rotate(0deg);
-  width: 58px;
+  width: 70px;
   z-index: 4;
 }
 
@@ -738,7 +804,8 @@ button:disabled {
   border-radius: 8px;
   display: inline-flex;
   justify-content: center;
-  min-height: 58px;
+  min-height: 68px;
+  min-width: 0;
   padding: 6px;
 }
 
@@ -799,8 +866,13 @@ button:disabled {
     grid-template-columns: repeat(4, minmax(64px, 1fr));
   }
 
-  .character-tile {
+  .character-tile,
+  .character-pick .character-tile {
     min-height: 82px;
+  }
+
+  .character-pick.is-selected .character-tile {
+    min-height: 70px;
   }
 
   .character-animal {

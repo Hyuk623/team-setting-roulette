@@ -15,6 +15,7 @@ import type {
 
 const MIN_SELECTED = 2;
 const MAX_SELECTED = 40;
+const MAX_NAME_LENGTH = 12;
 
 const teamMarks = [
   { shape: '●', color: '#e94f37' },
@@ -31,6 +32,7 @@ const defaultSession: StoredSession = {
   phase: 'setup',
   settings: { teamCount: 4 },
   selectedIds: [],
+  characterNames: {},
   spreadGroups: [],
   assignment: null,
   updatedAt: new Date().toISOString(),
@@ -39,7 +41,7 @@ const defaultSession: StoredSession = {
 function App() {
   const [session, setSession] = useState<StoredSession>(() => {
     const saved = loadSession();
-    return saved ?? defaultSession;
+    return saved ? { ...defaultSession, ...saved, characterNames: saved.characterNames ?? {} } : defaultSession;
   });
   const [activeGroupId, setActiveGroupId] = useState<string | null>(
     session.spreadGroups[0]?.id ?? null,
@@ -82,6 +84,7 @@ function App() {
       phase: 'select',
       settings,
       selectedIds: [],
+      characterNames: {},
       spreadGroups: [],
       assignment: null,
     });
@@ -97,10 +100,14 @@ function App() {
           ? [...current.selectedIds, characterId]
           : current.selectedIds;
       const selectedSet = new Set(selectedIds);
+      const characterNames = Object.fromEntries(
+        Object.entries(current.characterNames ?? {}).filter(([id]) => selectedSet.has(id)),
+      );
 
       return {
         ...current,
         selectedIds,
+        characterNames,
         assignment: null,
         spreadGroups: current.spreadGroups
           .map((group) => ({
@@ -110,6 +117,18 @@ function App() {
           .filter((group) => group.memberIds.length > 0),
       };
     });
+  };
+
+  const updateCharacterName = (characterId: string, name: string) => {
+    const trimmedValue = name.slice(0, MAX_NAME_LENGTH);
+
+    setSession((current) => ({
+      ...current,
+      characterNames: {
+        ...(current.characterNames ?? {}),
+        [characterId]: trimmedValue,
+      },
+    }));
   };
 
   const addSpreadGroup = () => {
@@ -213,8 +232,10 @@ function App() {
       )}
       {session.phase === 'select' && (
         <SelectionScreen
+          characterNames={session.characterNames ?? {}}
           selectedIds={session.selectedIds}
           teamCount={session.settings.teamCount}
+          onChangeName={updateCharacterName}
           onChangeTeamCount={updateTeamCount}
           onToggle={toggleCharacter}
           onBack={() => updateSession({ phase: 'setup' })}
@@ -224,6 +245,7 @@ function App() {
       {session.phase === 'groups' && (
         <SpreadGroupScreen
           activeGroupId={activeGroupId}
+          characterNames={session.characterNames ?? {}}
           groups={session.spreadGroups}
           selectedCharacters={selectedCharacters}
           teamCount={session.settings.teamCount}
@@ -240,6 +262,7 @@ function App() {
         <RouletteScreen
           assignment={session.assignment}
           characterById={characterById}
+          characterNames={session.characterNames ?? {}}
           onDone={finishRoulette}
         />
       )}
@@ -247,6 +270,7 @@ function App() {
         <ResultsScreen
           assignment={session.assignment}
           characterById={characterById}
+          characterNames={session.characterNames ?? {}}
           onEditGroups={() => updateSession({ phase: 'groups' })}
           onEndClass={endClass}
           onReroulette={reroulette}
@@ -266,7 +290,7 @@ function Header({
   teamCount: number;
 }) {
   const phaseLabel: Record<AppPhase, string> = {
-    setup: '수업 설정',
+    setup: '팀 설정',
     select: '캐릭터 선택',
     groups: '같은 팀 피하기',
     roulette: '룰렛 공개',
@@ -276,10 +300,9 @@ function Header({
   return (
     <header className="topbar">
       <div>
-        <p className="eyebrow">어린이 체육수업</p>
         <h1>팀 세팅 룰렛</h1>
       </div>
-      <div className="status-strip" aria-label="현재 수업 상태">
+      <div className="status-strip" aria-label="현재 진행 상태">
         <span>{phaseLabel[phase]}</span>
         <span>{teamCount}팀</span>
         <span>{selectedCount}명</span>
@@ -300,10 +323,10 @@ function SetupScreen({
   return (
     <section className="setup-layout" aria-labelledby="setup-title">
       <div className="setup-copy">
-        <p className="section-kicker">시작 및 수업 설정</p>
+        <p className="section-kicker">팀 설정</p>
         <h2 id="setup-title">오늘 몇 팀으로 나눌까요?</h2>
         <p className="screen-note">
-          팀 수는 언제든 다시 바꿀 수 있어요. 아이들은 2명부터 40명까지 캐릭터를 골라 참여합니다.
+          팀 수는 언제든 다시 바꿀 수 있어요. 참여자는 2명부터 40명까지 캐릭터를 골라 참여합니다.
         </p>
       </div>
       <div className="setup-panel">
@@ -380,16 +403,20 @@ function TeamCountControl({
 }
 
 function SelectionScreen({
+  characterNames,
   selectedIds,
   teamCount,
   onBack,
+  onChangeName,
   onChangeTeamCount,
   onNext,
   onToggle,
 }: {
+  characterNames: Record<string, string>;
   selectedIds: string[];
   teamCount: number;
   onBack: () => void;
+  onChangeName: (characterId: string, name: string) => void;
   onChangeTeamCount: (teamCount: number) => void;
   onNext: () => void;
   onToggle: (characterId: string) => void;
@@ -403,7 +430,7 @@ function SelectionScreen({
       <div className="screen-heading">
         <div>
           <p className="section-kicker">캐릭터 선택</p>
-          <h2 id="select-title">내 캐릭터를 한 번 터치</h2>
+          <h2 id="select-title">내 캐릭터를 고르고 이름을 적어요</h2>
         </div>
         <div className="heading-tools">
           <MiniSettings teamCount={teamCount} onChangeTeamCount={onChangeTeamCount} />
@@ -413,9 +440,10 @@ function SelectionScreen({
         </div>
       </div>
       <CharacterGrid
-        mode="select"
+        characterNames={characterNames}
         selectedIds={selectedSet}
         characters={characters}
+        onChangeName={onChangeName}
         onToggle={onToggle}
       />
       <div className="action-row">
@@ -452,6 +480,7 @@ function MiniSettings({
 
 function SpreadGroupScreen({
   activeGroupId,
+  characterNames,
   groups,
   selectedCharacters,
   teamCount,
@@ -464,6 +493,7 @@ function SpreadGroupScreen({
   onToggleMember,
 }: {
   activeGroupId: string | null;
+  characterNames: Record<string, string>;
   groups: StoredSpreadGroup[];
   selectedCharacters: CharacterOption[];
   teamCount: number;
@@ -554,7 +584,7 @@ function SpreadGroupScreen({
                 style={{ '--accent': character.accent } as CSSProperties}
                 type="button"
               >
-                <CharacterFace character={character} />
+                <CharacterFace character={character} name={characterNames[character.id]} />
                 {assignedGroup && (
                   <span className="group-badge">{assignedGroup.label}</span>
                 )}
@@ -578,10 +608,12 @@ function SpreadGroupScreen({
 function RouletteScreen({
   assignment,
   characterById,
+  characterNames,
   onDone,
 }: {
   assignment: TeamAssignment;
   characterById: Map<string, CharacterOption>;
+  characterNames: Record<string, string>;
   onDone: () => void;
 }) {
   useEffect(() => {
@@ -656,7 +688,7 @@ function RouletteScreen({
                 } as CSSProperties
               }
             >
-              <CharacterFace character={character} compact />
+              <CharacterFace character={character} compact name={characterNames[character.id]} />
             </div>
           );
         })}
@@ -668,12 +700,14 @@ function RouletteScreen({
 function ResultsScreen({
   assignment,
   characterById,
+  characterNames,
   onEditGroups,
   onEndClass,
   onReroulette,
 }: {
   assignment: TeamAssignment;
   characterById: Map<string, CharacterOption>;
+  characterNames: Record<string, string>;
   onEditGroups: () => void;
   onEndClass: () => void;
   onReroulette: () => void;
@@ -691,6 +725,7 @@ function ResultsScreen({
         {assignment.teams.map((team) => (
           <TeamResultCard
             characterById={characterById}
+            characterNames={characterNames}
             key={team.teamIndex}
             team={team}
           />
@@ -713,9 +748,11 @@ function ResultsScreen({
 
 function TeamResultCard({
   characterById,
+  characterNames,
   team,
 }: {
   characterById: Map<string, CharacterOption>;
+  characterNames: Record<string, string>;
   team: TeamResult;
 }) {
   const mark = teamMarks[team.teamIndex];
@@ -747,7 +784,7 @@ function TeamResultCard({
               key={character.id}
               style={{ '--accent': character.accent } as CSSProperties}
             >
-              <CharacterFace character={character} compact />
+              <CharacterFace character={character} compact name={characterNames[character.id]} />
             </span>
           );
         })}
@@ -757,31 +794,50 @@ function TeamResultCard({
 }
 
 function CharacterGrid({
+  characterNames,
   characters: characterList,
-  mode,
+  onChangeName,
   onToggle,
   selectedIds,
 }: {
+  characterNames: Record<string, string>;
   characters: CharacterOption[];
-  mode: 'select';
+  onChangeName: (characterId: string, name: string) => void;
   onToggle: (characterId: string) => void;
   selectedIds: Set<string>;
 }) {
   return (
-    <div className="character-grid" data-mode={mode}>
+    <div className="character-grid" data-mode="select">
       {characterList.map((character) => {
         const selected = selectedIds.has(character.id);
 
         return (
-          <button
-            className={selected ? 'character-tile is-selected' : 'character-tile'}
+          <div
+            className={selected ? 'character-pick is-selected' : 'character-pick'}
             key={character.id}
-            onClick={() => onToggle(character.id)}
             style={{ '--accent': character.accent } as CSSProperties}
-            type="button"
           >
-            <CharacterFace character={character} />
-          </button>
+            <button
+              className={selected ? 'character-tile is-selected' : 'character-tile'}
+              onClick={() => onToggle(character.id)}
+              type="button"
+            >
+              <CharacterFace character={character} name={characterNames[character.id]} />
+            </button>
+            {selected && (
+              <label className="name-field">
+                <span>이름</span>
+                <input
+                  aria-label={`${character.number}번 캐릭터 이름`}
+                  maxLength={MAX_NAME_LENGTH}
+                  onChange={(event) => onChangeName(character.id, event.target.value)}
+                  placeholder="이름"
+                  type="text"
+                  value={characterNames[character.id] ?? ''}
+                />
+              </label>
+            )}
+          </div>
         );
       })}
     </div>
@@ -791,10 +847,14 @@ function CharacterGrid({
 function CharacterFace({
   character,
   compact = false,
+  name,
 }: {
   character: CharacterOption;
   compact?: boolean;
+  name?: string;
 }) {
+  const trimmedName = name?.trim();
+
   return (
     <span className={compact ? 'character-face is-compact' : 'character-face'}>
       <span className="character-animal" aria-hidden="true">
@@ -806,6 +866,7 @@ function CharacterFace({
         </span>
         <span>{String(character.number).padStart(2, '0')}</span>
       </span>
+      {trimmedName && <span className="character-name">{trimmedName}</span>}
     </span>
   );
 }

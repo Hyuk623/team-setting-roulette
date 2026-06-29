@@ -1,6 +1,6 @@
 import type { StoredSession } from './types';
 
-const STORAGE_KEY = 'team-play-roulette-session-v1';
+const STORAGE_KEY = 'roulette-session-v2';
 
 export function loadSession(): StoredSession | null {
   const rawValue = window.localStorage.getItem(STORAGE_KEY);

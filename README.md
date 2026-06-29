@@ -1,11 +1,11 @@
 # 팀 세팅 룰렛
 
-어린이 체육수업에서 이름 없이 동물·도형·번호 캐릭터만으로 팀을 빠르게 편성하는 React + TypeScript + Vite PWA입니다. 로그인과 백엔드는 없고, 수업 설정과 현재 선택 상태는 브라우저 `localStorage`에 저장됩니다.
+체육 활동에서 동물·도형·번호 캐릭터와 선택 이름으로 팀을 빠르게 편성하는 React + TypeScript + Vite PWA입니다. 로그인과 백엔드는 없고, 팀 설정과 현재 선택 상태는 브라우저 `localStorage`에 저장됩니다.
 
 ## 주요 기능
 
 - 2~8개 팀 설정
-- 2~40명 캐릭터 터치 선택
+- 2~40명 캐릭터 터치 선택 및 선택 이름 입력
 - 강사용 같은 팀 피하기 묶음 여러 개 설정
 - seeded random 기반 순수 TypeScript 팀 배정 알고리즘
 - 룰렛 애니메이션 전 사전 계산된 결과로 캐릭터 이동
@@ -41,14 +41,14 @@ npm run build
 
 ## GitHub Pages
 
-저장소 이름은 `team-play-roulette`를 기준으로 Vite `base`가 `/team-play-roulette/`로 설정됩니다. GitHub 저장소에서 Pages source를 `GitHub Actions`로 선택하면 `.github/workflows/deploy.yml`이 `main` 브랜치 push 때 배포합니다.
+저장소 이름은 `roulette`를 기준으로 Vite `base`가 `/roulette/`로 설정됩니다. GitHub 저장소에서 Pages source를 `GitHub Actions`로 선택하면 `.github/workflows/deploy.yml`이 `main` 브랜치 push 때 배포합니다.
 
 ## 저장소 생성 예시
 
 GitHub CLI가 설치되어 있고 로그인되어 있다면:
 
 ```bash
-gh repo create team-play-roulette --public --source=. --remote=origin --push
+gh repo create roulette --public --source=. --remote=origin --push
 ```
 
 이후 Pages 설정에서 `GitHub Actions`를 선택하거나, 이미 선택되어 있다면 `main` push 후 자동 배포됩니다.

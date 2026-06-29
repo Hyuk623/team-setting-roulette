@@ -16,6 +16,7 @@ export interface StoredSession {
   phase: AppPhase;
   settings: ClassSettings;
   selectedIds: string[];
+  characterNames: Record<string, string>;
   spreadGroups: StoredSpreadGroup[];
   assignment: TeamAssignment | null;
   updatedAt: string;
