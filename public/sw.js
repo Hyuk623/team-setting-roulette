@@ -1,4 +1,4 @@
-const CACHE_NAME = 'roulette-v1';
+const CACHE_NAME = 'team-setting-roulette-v1';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './favicon.svg'];
 
 self.addEventListener('install', (event) => {

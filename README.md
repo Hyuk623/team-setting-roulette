@@ -41,14 +41,15 @@ npm run build
 
 ## GitHub Pages
 
-저장소 이름은 `roulette`를 기준으로 Vite `base`가 `/roulette/`로 설정됩니다. GitHub 저장소에서 Pages source를 `GitHub Actions`로 선택하면 `.github/workflows/deploy.yml`이 `main` 브랜치 push 때 배포합니다.
+저장소 이름은 `team-setting-roulette`를 기준으로 Vite `base`가 `/team-setting-roulette/`로 설정됩니다. GitHub 저장소에서 Pages source를 `GitHub Actions`로 선택하면 `.github/workflows/deploy.yml`이 `main` 브랜치 push 때 배포합니다.
 
 ## 저장소 생성 예시
 
 GitHub CLI가 설치되어 있고 로그인되어 있다면:
 
 ```bash
-gh repo create roulette --public --source=. --remote=origin --push
+git remote add origin https://github.com/Hyuk623/team-setting-roulette.git
+git push -u origin main
 ```
 
 이후 Pages 설정에서 `GitHub Actions`를 선택하거나, 이미 선택되어 있다면 `main` push 후 자동 배포됩니다.
