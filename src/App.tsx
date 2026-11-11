@@ -6,6 +6,7 @@ import {
   type TeamResult,
 } from './lib/teamAssignment';
 import { clearSession, loadSession, saveSession } from './storage';
+import Roster from './Roster';
 import type {
   AppPhase,
   ClassSettings,
@@ -231,6 +232,11 @@ function App() {
         <SetupScreen settings={session.settings} onStart={startClass} />
       )}
       {session.phase === 'select' && (
+        <>
+        <Roster ids={session.selectedIds} names={session.characterNames ?? {}} onLoad={(selectedIds, characterNames) => {
+          updateSession({ selectedIds, characterNames, spreadGroups: [], assignment: null });
+          setActiveGroupId(null);
+        }} />
         <SelectionScreen
           characterNames={session.characterNames ?? {}}
           selectedIds={session.selectedIds}
@@ -241,6 +247,7 @@ function App() {
           onBack={() => updateSession({ phase: 'setup' })}
           onNext={() => updateSession({ phase: 'groups' })}
         />
+        </>
       )}
       {session.phase === 'groups' && (
         <SpreadGroupScreen

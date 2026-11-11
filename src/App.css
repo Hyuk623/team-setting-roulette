@@ -10,6 +10,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.saved-roster { margin: 16px 32px 0; padding: 14px 0; border-bottom: 1px solid #d8dee9; }
+.saved-roster summary { cursor: pointer; font-weight: 800; margin-bottom: 12px; }
+.saved-roster input, .saved-roster select { font: inherit; padding: 10px; border: 1px solid #c8d2df; border-radius: 6px; min-width: 0; max-width: 100%; }
+.roster-entries { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 12px 0; }
+.roster-entries > div { display: grid; grid-template-columns: minmax(0, 1fr) 90px; gap: 6px; }
+
 * {
   box-sizing: border-box;
 }
@@ -794,7 +800,24 @@ button:disabled {
 .team-members {
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+}
+
+.member-chip .character-face {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.member-chip .character-name {
+  border-radius: 6px;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  padding-inline: 4px;
+  text-align: center;
+  white-space: normal;
 }
 
 .member-chip {
